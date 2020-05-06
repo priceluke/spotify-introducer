@@ -48,7 +48,7 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email';
+  var scope = 'user-read-private user-read-email user-read-currently-playing user-read-playback-state user-modify-playback-state';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -102,7 +102,7 @@ app.get('/callback', function(req, res) {
 
         // use the access token to access the Spotify Web API
         request.get(options, function(error, response, body) {
-          console.log(body);
+
         });
 
         // we can also pass the token to the browser to make requests from there
@@ -140,6 +140,26 @@ app.get('/refresh_token', function(req, res) {
       var access_token = body.access_token;
       res.send({
         'access_token': access_token
+      });
+    }
+  });
+});
+
+
+
+app.get('/volume', function(req, res) {
+  // requesting access token from refresh token
+  var refresh_token = req.query.refresh_token;
+  var authOptions = {
+    url: 'https://api.spotify.com/v1/me/player/currently-playing',
+    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
+    json: true
+  };
+
+  request.post(authOptions, function(error, response, body) {
+    if (!error && response.statusCode === 200) {
+      res.send({
+        'data': body
       });
     }
   });
